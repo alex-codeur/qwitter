@@ -102,6 +102,8 @@
 </template>
 
 <script>
+import db from "src/boot/firebase";
+
 import moment from "moment";
 moment.locale("fr");
 
@@ -111,16 +113,16 @@ export default {
     return {
       newQweetContent: "",
       qweets: [
-        {
-          content:
-            "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
-          date: 1627204254709,
-        },
-        {
-          content:
-            "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
-          date: 1627204281782,
-        },
+        // {
+        //   content:
+        //     "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
+        //   date: 1627204254709,
+        // },
+        // {
+        //   content:
+        //     "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
+        //   date: 1627204281782,
+        // },
       ],
     };
   },
@@ -144,6 +146,26 @@ export default {
       let index = this.qweets.findIndex((qweet) => qweet.date === dateToDelete);
       this.qweets.splice(index, 1);
     },
+  },
+
+  mounted() {
+    db.collection("qweets")
+      .orderBy("date")
+      .onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            let qweetChange = change.doc.data();
+            console.log("New qweet: ", qweetChange);
+            this.qweets.unshift(qweetChange);
+          }
+          if (change.type === "modified") {
+            console.log("Modified qweet: ", change.doc.data());
+          }
+          if (change.type === "removed") {
+            console.log("Removed qweet: ", change.doc.data());
+          }
+        });
+      });
   },
 };
 </script>
