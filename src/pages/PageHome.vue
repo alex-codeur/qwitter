@@ -79,7 +79,14 @@
                   icon="fas fa-retweet"
                   size="sm"
                 />
-                <q-btn color="grey" flat round icon="far fa-heart" size="sm" />
+                <q-btn
+                  @click="toggleLiked(qweet)"
+                  flat
+                  round
+                  :color="qweet.liked ? 'pink' : 'grey'"
+                  :icon="qweet.liked ? 'fas fa-heart' : 'far fa-heart'"
+                  size="sm"
+                />
                 <q-btn
                   color="grey"
                   flat
@@ -110,14 +117,18 @@ export default {
       newQweetContent: "",
       qweets: [
         // {
+        //   id: "ID1",
         //   content:
         //     "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
         //   date: 1627204254709,
+        //   liked: false,
         // },
         // {
+        //   id: "ID2",
         //   content:
         //     "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Excepturi debitis quidem cumque, sequi fuga, assumenda voluptatum culpa reprehenderit obcaecati laborum quibusdam totam molestiae provident, laboriosam accusantium optio? Quis, non unde.",
         //   date: 1627204281782,
+        //   liked: true,
         // },
       ],
     };
@@ -132,6 +143,7 @@ export default {
       let newQweet = {
         content: this.newQweetContent,
         date: Date.now(),
+        liked: false,
       };
       // this.qweets.unshift(newQweet);
       db.collection("qweets")
@@ -157,6 +169,21 @@ export default {
           console.error("Error removing document: ", error);
         });
     },
+
+    toggleLiked(qweet) {
+      db.collection("qweets")
+        .doc(qweet.id)
+        .update({
+          liked: !qweet.liked,
+        })
+        .then(() => {
+          console.log("Document successfully updated!");
+        })
+        .catch((error) => {
+          // The document probably doesn't exist.
+          console.error("Error updating document: ", error);
+        });
+    },
   },
 
   mounted() {
@@ -172,6 +199,10 @@ export default {
           }
           if (change.type === "modified") {
             console.log("Modified qweet: ", change.doc.data());
+            let index = this.qweets.findIndex(
+              (qweet) => qweet.id === qweetChange.id
+            );
+            Object.assign(this.qweets[index], qweetChange);
           }
           if (change.type === "removed") {
             console.log("Removed qweet: ", change.doc.data());
